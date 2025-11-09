@@ -1,0 +1,60 @@
+This Navbar component in React provides a responsive navigation bar for a Rental System.
+
+IMPORTS:-
+useState is a React hook to manage state.
+NavLink from React Router is used for navigation with active link highlighting.
+Menu and X icons from the lucide-react library are used for the hamburger menu and close icon.
+
+COMPONENT DEFINATION:-
+Navbar is a functional component.
+isOpen is a state variable that tracks whether the mobile menu is open or closed.
+setIsOpen is the function to update isOpen.
+Initially, isOpen is false (menu is closed).
+
+NAVIGATION LINKARRAY:-
+navLinks is an array of objects. Each object contains:
+to: The path for navigation.
+label: The text displayed for that link.
+
+MAIN NAVBAR CONTAINER:-
+The nav element has Tailwind CSS classes for styling:
+bg-gray-800: Dark gray background.
+text-gray-300: Light gray text color.
+shadow-md: Medium shadow for a subtle 3D effect.
+w-full: Full width.
+sticky top-0 z-10: Sticks the navbar to the top of the page with a z-index of 10.
+
+NAVBAR CONTENT WRAPPER:-
+container mx-auto: Centers the navbar content horizontally.
+px-4 py-4: Padding for top, bottom, left, and right.
+flex justify-between items-center: Flexbox layout to space out items horizontally and vertically center them.
+
+BRAND NAME/LOGO:-
+A NavLink for the brand name.
+On hover, the text changes from teal-500 to teal-400 with a smooth transition.
+
+DESKTOP NAVIGATION LINK:-
+hidden md:flex: Hidden on mobile, shown on medium screens and above.
+space-x-8: Adds space between links horizontally.
+
+MAPPING OVER NAVLINK:-
+map function iterates through the navLinks array.
+NavLink is used for each navigation link.
+The className dynamically applies a background color and bold text when the link is active (isActive).
+
+HAMBERGURE MENU BUTTON (Visible Only on Mobile):-
+md:hidden: Only visible on small screens.
+Toggles isOpen state when clicked.
+Shows the X icon when the menu is open and the Menu icon when closed.
+
+MOBILE NAVIGATION MENU (Visible Only When isOpen is True):-
+Renders only when isOpen is true.
+flex flex-col: Vertically stacks the links.
+space-y-4: Adds space between each link.
+
+MOBILE LINK MAPPING:-
+Same mapping logic as desktop.
+onClick={() => setIsOpen(false)} closes the menu after a link is clicked.
+
+EXPORT COMPONENT:-
+Makes the component reusable across the app

@@ -1,0 +1,10 @@
+IMPORTS:-
+
+Imports React, which is necessary to define and use React components.
+Imports the Link component from react-router-dom, which allows navigation without a full page reload.
+Imports social media icons from the lucide-react package for use in the footer.
+
+COMPONENT DECLARATION:-
+Defines a functional component named Footer that accepts a prop called className.
+This prop allows custom styles to be applied when the component is used.
+
