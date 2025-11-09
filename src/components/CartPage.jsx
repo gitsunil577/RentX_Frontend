@@ -47,14 +47,14 @@ export default function CartPage() {
   const calculateTotal = () =>
     cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleRemoveItem = async (productId) => {
+  const handleRemoveItem = async (vehicleId) => {
     try {
       await axios.delete(`${BASE}/cart/remove-cart`, {
         headers: { Authorization: `Bearer ${token}` },
-        data: { productId },
+        data: { vehicleId },
       });
       setCartItems((prev) =>
-        prev.filter((item) => item.productId !== productId)
+        prev.filter((item) => item.vehicleId !== vehicleId)
       );
     } catch (err) {
       console.error("Error removing item:", err);
@@ -62,17 +62,17 @@ export default function CartPage() {
     }
   };
 
-  const handleQuantityChange = async (productId, newQuantity) => {
+  const handleQuantityChange = async (vehicleId, newQuantity) => {
     if (newQuantity < 1) return;
     try {
       await axios.post(
         `${BASE}/cart/update-quantity`,
-        { productId, quantity: newQuantity },
+        { vehicleId, quantity: newQuantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCartItems((prev) =>
         prev.map((item) =>
-          item.productId === productId
+          item.vehicleId === vehicleId
             ? { ...item, quantity: newQuantity }
             : item
         )
@@ -83,15 +83,15 @@ export default function CartPage() {
     }
   };
 
-  const incrementQuantity = (productId) => {
-    const current = cartItems.find((i) => i.productId === productId)?.quantity;
-    handleQuantityChange(productId, current + 1);
+  const incrementQuantity = (vehicleId) => {
+    const current = cartItems.find((i) => i.vehicleId === vehicleId)?.quantity;
+    handleQuantityChange(vehicleId, current + 1);
   };
 
-  const decrementQuantity = (productId) => {
-    const current = cartItems.find((i) => i.productId === productId)?.quantity;
+  const decrementQuantity = (vehicleId) => {
+    const current = cartItems.find((i) => i.vehicleId === vehicleId)?.quantity;
     if (current > 1) {
-      handleQuantityChange(productId, current - 1);
+      handleQuantityChange(vehicleId, current - 1);
     }
   };
 
@@ -215,34 +215,34 @@ export default function CartPage() {
               <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
                 <div className="md:col-span-2 space-y-8">
                   {cartItems.map((item) => (
-                    <div key={item.productId} className="bg-white rounded-lg shadow-md border border-gray-200">
+                    <div key={item.vehicleId} className="bg-white rounded-lg shadow-md border border-gray-200">
                       <div className="flex items-center p-6">
                         <div className="w-48 h-48 mr-10 overflow-hidden rounded-lg shadow-sm">
-                          <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
+                          <img src={item.vehicleImage} alt={item.vehicleName} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-grow">
-                          <h2 className="text-2xl font-semibold text-teal-600 mb-3">{item.productName}</h2>
+                          <h2 className="text-2xl font-semibold text-teal-600 mb-3">{item.vehicleName}</h2>
                           <p className="text-gray-600 text-lg mb-3">
                             Price: <span className="font-semibold text-gray-800">₹{item.price}</span>
                           </p>
                           <div className="flex items-center">
-                            <label htmlFor={`quantity-${item.productId}`} className="mr-4 text-gray-700 font-semibold text-lg">Quantity:</label>
+                            <label htmlFor={`quantity-${item.vehicleId}`} className="mr-4 text-gray-700 font-semibold text-lg">Quantity:</label>
                             <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                              <button onClick={() => decrementQuantity(item.productId)} className="px-4 py-2 hover:bg-gray-100">
+                              <button onClick={() => decrementQuantity(item.vehicleId)} className="px-4 py-2 hover:bg-gray-100">
                                 <MinusIcon className="h-6 w-6" />
                               </button>
                               <input
                                 type="number"
-                                id={`quantity-${item.productId}`}
+                                id={`quantity-${item.vehicleId}`}
                                 className="w-20 text-center bg-white border-l border-r border-gray-300 focus:outline-none"
                                 value={item.quantity}
                                 onChange={(e) => {
                                   const val = parseInt(e.target.value);
-                                  if (!isNaN(val) && val > 0) handleQuantityChange(item.productId, val);
+                                  if (!isNaN(val) && val > 0) handleQuantityChange(item.vehicleId, val);
                                 }}
                                 min="1"
                               />
-                              <button onClick={() => incrementQuantity(item.productId)} className="px-4 py-2 hover:bg-gray-100">
+                              <button onClick={() => incrementQuantity(item.vehicleId)} className="px-4 py-2 hover:bg-gray-100">
                                 <PlusIcon className="h-6 w-6" />
                               </button>
                             </div>
@@ -250,7 +250,7 @@ export default function CartPage() {
                         </div>
                         <div className="ml-4 text-right">
                           <p className="text-2xl font-bold text-teal-600">₹{item.price * item.quantity}</p>
-                          <button onClick={() => handleRemoveItem(item.productId)} className="text-red-500 hover:text-red-600 mt-4 flex items-center">
+                          <button onClick={() => handleRemoveItem(item.vehicleId)} className="text-red-500 hover:text-red-600 mt-4 flex items-center">
                             <TrashIcon className="h-6 w-6 mr-2" /> Remove
                           </button>
                         </div>

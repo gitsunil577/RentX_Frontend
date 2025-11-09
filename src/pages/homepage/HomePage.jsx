@@ -1,10 +1,12 @@
 import React from 'react'
 import Hero from './Hero';
+import VehicleFooter from './VehicleFooter';
 
 function HomePage() {
-    return ( 
+    return (
         <div>
             <Hero />
+            <VehicleFooter />
         </div>
      );
 }

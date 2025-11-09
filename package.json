@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "RentX - Smart rental marketplace for sharing and borrowing items",
+  "description": "RentX - Premium vehicle rental platform for cars, bikes, and more",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -128,7 +128,7 @@ function RegisterPage() {
             Create Account
           </h2>
           <p className="text-lg text-blue-200/80 animate-fade-in-delay font-light">
-            Join the rental revolution today
+            Start renting vehicles in minutes
           </p>
         </div>
 

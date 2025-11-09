@@ -4,7 +4,6 @@ import React from 'react';
 import './App.css';
 import LoginPage from './pages/loginpage/LoginPage';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 import {
     BrowserRouter,
     Routes,
@@ -13,12 +12,12 @@ import {
 } from 'react-router-dom';
 import HomePage from './pages/homepage/HomePage';
 import AboutPage from './pages/aboutpage/AboutPage';
-import ProductPage from './pages/productspage/ProductPage';
+import VehiclePage from './pages/vehiclepage/VehiclePages';
 import RegisterPage from './pages/registerpage/RegisterPage';
 import MyContact from './pages/contact/ContactPage';
-import ProductDetails from './pages/productspage/ProductDetails';
-import RegisterProduct from './components/RegisterProduct';
-import RegisterSeller from './components/RegisterSeller';
+import VehicleDetails from './pages/vehiclepage/VehicleDetails';
+import RegisterVehicle from './components/RegisterVehicle';
+import RegisterOwner from './components/RegisterOwner';
 
 import CartPage from './components/CartPage';
 
@@ -29,7 +28,8 @@ import 'react-toastify/dist/ReactToastify.css'; // ✅ Import styles
 function AppContent() {
   const location = useLocation();
   const hideNavbarPaths = ['/login', '/register'];
-  const hideFooterPaths = ['/login', '/register'];
+  const hideFooterPaths = ['/login', '/register', '/', '/home'];
+  const noPaddingPaths = ['/login', '/register', '/', '/home']; // No padding for login, register, and homepage
 
   return (
     <>
@@ -49,23 +49,21 @@ function AppContent() {
         draggable
       />
 
-      <div className={hideNavbarPaths.includes(location.pathname) ? "min-h-screen" : "min-h-screen pt-16"} style={hideNavbarPaths.includes(location.pathname) ? {} : { paddingBottom: '70px' }}>
+      <div className={noPaddingPaths.includes(location.pathname) ? "min-h-screen" : "min-h-screen pt-16"} style={noPaddingPaths.includes(location.pathname) ? {} : { paddingBottom: '70px' }}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/products" element={<ProductPage />} />
+          <Route path="/vehicles" element={<VehiclePage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/contact" element={<MyContact />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/vehicle/:id" element={<VehicleDetails />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/seller/register" element={<RegisterSeller />} />
-          <Route path="/product/register" element={<RegisterProduct />} />
+          <Route path="/owner/register" element={<RegisterOwner />} />
+          <Route path="/vehicle/register" element={<RegisterVehicle />} />
         </Routes>
       </div>
-
-      {!hideFooterPaths.includes(location.pathname) && <Footer />}
     </>
   );
 }

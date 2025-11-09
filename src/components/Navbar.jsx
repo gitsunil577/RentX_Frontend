@@ -96,45 +96,54 @@ const Navbar = () => {
 
   const navLinks = [
     { to: "/home", label: "Home" },
-    { to: "/products", label: "Products" },
+    { to: "/vehicles", label: "Vehicles" },
     { to: "/about", label: "About" },
     { to: "/contact", label: "Contact" },
   ];
 
   return (
-    <nav className="bg-gray-800 text-gray-300 shadow-md w-full sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <nav className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-slate-300 shadow-lg w-full sticky top-0 z-50 border-b border-slate-800/50 backdrop-blur-xl">
+      {/* Background grid pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f46e505_1px,transparent_1px),linear-gradient(to_bottom,#4f46e505_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none"></div>
+
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center relative z-10">
         <NavLink
           to="/"
-          className="text-2xl font-bold text-teal-500 hover:text-teal-400 transition"
+          className="text-3xl font-bold transition group"
         >
-          Rental System
+          <span className="text-white group-hover:text-blue-200 transition-colors drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">Rent</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 group-hover:from-blue-300 group-hover:to-purple-400 transition-all drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">X</span>
         </NavLink>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex space-x-6 items-center">
+        <div className="hidden md:flex space-x-2 items-center">
           {navLinks.map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `py-2 px-3 rounded-md hover:bg-gray-700 transition ${
-                  isActive ? "bg-teal-500 text-white font-semibold" : ""
+                `py-2.5 px-5 rounded-lg font-medium transition-all duration-300 relative group ${
+                  isActive
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800/50"
                 }`
               }
             >
-              {label}
+              <span className="relative z-10">{label}</span>
+              {!location.pathname.includes(to) && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/10 to-purple-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              )}
             </NavLink>
           ))}
 
           {isLoggedIn && (
             <button
               onClick={handleCartClick}
-              className="relative py-2 px-3 rounded-md bg-teal-500 hover:bg-teal-600 text-white font-semibold"
+              className="relative py-2.5 px-5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105"
             >
               Cart
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-xs text-white rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-red-500 text-xs text-white rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg animate-pulse">
                   {cartCount}
                 </span>
               )}
@@ -144,7 +153,7 @@ const Navbar = () => {
           {isLoggedIn ? (
             <button
               onClick={handleLogout}
-              className="py-2 px-3 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold"
+              className="py-2.5 px-5 rounded-lg bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold transition-all duration-300 shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:scale-105"
             >
               Logout
             </button>
@@ -152,13 +161,13 @@ const Navbar = () => {
             <>
               <NavLink
                 to="/login"
-                className="py-2 px-3 rounded-md hover:bg-gray-700 transition"
+                className="py-2.5 px-5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium transition-all duration-300"
               >
                 Login
               </NavLink>
               <NavLink
                 to="/register"
-                className="py-2 px-3 rounded-md hover:bg-gray-700 transition"
+                className="py-2.5 px-5 rounded-lg border-2 border-blue-500 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 font-semibold transition-all duration-300"
               >
                 Register
               </NavLink>
@@ -168,7 +177,7 @@ const Navbar = () => {
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden"
+          className="md:hidden p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
           onClick={() => setIsOpen((o) => !o)}
         >
           {isOpen ? (
@@ -181,68 +190,80 @@ const Navbar = () => {
 
       {/* Mobile Nav */}
       {isOpen && (
-        <div className="md:hidden bg-gray-700 flex flex-col space-y-3 px-4 py-4">
-          {navLinks.map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className="py-2 px-3 rounded-md hover:bg-gray-600 text-white"
-              onClick={() => setIsOpen(false)}
-            >
-              {label}
-            </NavLink>
-          ))}
+        <div className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 relative">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f46e505_1px,transparent_1px),linear-gradient(to_bottom,#4f46e505_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none"></div>
 
-          {isLoggedIn && (
-            <button
-              onClick={() => {
-                handleCartClick();
-                setIsOpen(false);
-              }}
-              className="relative py-2 px-3 rounded-md bg-teal-500 hover:bg-teal-600 text-white font-semibold"
-            >
-              Cart
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-xs text-white rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          )}
-
-          {isLoggedIn ? (
-            <button
-              onClick={() => {
-                handleLogout();
-                setIsOpen(false);
-              }}
-              className="py-2 px-3 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold"
-            >
-              Logout
-            </button>
-          ) : (
-            <>
+          <div className="flex flex-col space-y-2 px-4 py-4 relative z-10">
+            {navLinks.map(({ to, label }) => (
               <NavLink
-                to="/login"
-                className="py-2 px-3 rounded-md hover:bg-gray-600 text-white"
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `py-3 px-4 rounded-lg font-medium transition-all ${
+                    isActive
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                  }`
+                }
                 onClick={() => setIsOpen(false)}
               >
-                Login
+                {label}
               </NavLink>
-              <NavLink
-                to="/register"
-                className="py-2 px-3 rounded-md hover:bg-gray-600 text-white"
-                onClick={() => setIsOpen(false)}
+            ))}
+
+            {isLoggedIn && (
+              <button
+                onClick={() => {
+                  handleCartClick();
+                  setIsOpen(false);
+                }}
+                className="relative py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg"
               >
-                Register
-              </NavLink>
-            </>
-          )}
+                Cart
+                {cartCount > 0 && (
+                  <span className="absolute top-1 right-2 bg-gradient-to-r from-pink-500 to-red-500 text-xs text-white rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {isLoggedIn ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }}
+                className="py-3 px-4 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold shadow-lg"
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <NavLink
+                  to="/login"
+                  className="py-3 px-4 rounded-lg text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Login
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className="py-3 px-4 rounded-lg border-2 border-blue-500 text-blue-400 hover:bg-blue-500/10 font-semibold text-center"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Register
+                </NavLink>
+              </>
+            )}
+          </div>
         </div>
       )}
 
       {error && (
-        <div className="text-red-400 text-center py-2">{error}</div>
+        <div className="text-red-400 text-center py-2 bg-red-900/20 border-t border-red-500/20">
+          {error}
+        </div>
       )}
     </nav>
   );

@@ -106,7 +106,7 @@ export default function LoginPage() {
             Welcome Back
           </h2>
           <p className="text-lg text-blue-200/80 animate-fade-in-delay font-light">
-            Sign in to continue your rental journey
+            Sign in to rent your dream vehicle
           </p>
         </div>
 
