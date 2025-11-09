@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { TrashIcon } from "@heroicons/react/24/outline";
-import { PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
+import { FaTrash, FaPlus, FaMinus, FaCalendarAlt, FaShieldAlt, FaUserTie, FaCar } from "react-icons/fa";
 import axiosInstance from "../api/axiosInstance";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [rentalDetails, setRentalDetails] = useState([]);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("accessToken");
@@ -29,6 +31,10 @@ export default function CartPage() {
         });
         const data = response.data?.data;
         setCartItems(Array.isArray(data) ? data : []);
+
+        // Load rental details from localStorage
+        const storedRentalDetails = JSON.parse(localStorage.getItem('rentalDetails') || '[]');
+        setRentalDetails(storedRentalDetails);
       } catch (err) {
         console.error("Error fetching cart:", err);
         if (err.response?.status === 401) {
@@ -44,8 +50,32 @@ export default function CartPage() {
     fetchCart();
   }, [token, BASE]);
 
-  const calculateTotal = () =>
-    cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // Get rental details for a specific vehicle
+  const getRentalDetailsForVehicle = (vehicleId) => {
+    return rentalDetails.find(r => r.vehicleId === vehicleId);
+  };
+
+  // Calculate total including rental days and additional options
+  const calculateItemTotal = (item) => {
+    const rental = getRentalDetailsForVehicle(item.vehicleId);
+    if (rental) {
+      return rental.totalPrice;
+    }
+    // Fallback to simple calculation if no rental details
+    return item.price * item.quantity;
+  };
+
+  const calculateSubtotal = () => {
+    return cartItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  };
+
+  const calculateTax = () => {
+    return calculateSubtotal() * 0.05; // 5% tax
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal() + calculateTax();
+  };
 
   const handleRemoveItem = async (vehicleId) => {
     try {
@@ -56,9 +86,16 @@ export default function CartPage() {
       setCartItems((prev) =>
         prev.filter((item) => item.vehicleId !== vehicleId)
       );
+
+      // Also remove from rental details
+      const updatedRentalDetails = rentalDetails.filter(r => r.vehicleId !== vehicleId);
+      setRentalDetails(updatedRentalDetails);
+      localStorage.setItem('rentalDetails', JSON.stringify(updatedRentalDetails));
+
+      toast.success("Item removed from cart");
     } catch (err) {
       console.error("Error removing item:", err);
-      setError("Failed to remove item. Please try again.");
+      toast.error("Failed to remove item. Please try again.");
     }
   };
 
@@ -79,7 +116,7 @@ export default function CartPage() {
       );
     } catch (err) {
       console.error("Error updating quantity:", err);
-      setError("Failed to update quantity. Please try again.");
+      toast.error("Failed to update quantity. Please try again.");
     }
   };
 
@@ -97,44 +134,45 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     const totalAmount = calculateTotal();
-  
+
     if (!totalAmount || isNaN(totalAmount) || totalAmount <= 0) {
-      alert("Invalid total amount. Cannot proceed to payment.");
+      toast.error("Invalid total amount. Cannot proceed to payment.");
       return;
     }
-  
+
     if (!window.Razorpay) {
-      alert("Razorpay SDK failed to load.");
+      toast.error("Razorpay SDK failed to load.");
       return;
     }
-  
+
     try {
       const { data } = await axiosInstance.post(`${BASE}/payments/create-order`, {
         amount: Math.round(totalAmount * 100),
       });
-  
+
       const order = data?.order;
-  
+
       if (!order?.id) {
-        alert("Failed to create payment order.");
+        toast.error("Failed to create payment order.");
         return;
       }
-  
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         order_id: order.id,
-        name: "Rental Store",
-        description: "Payment for rental products",
+        name: "E-Rental System",
+        description: "Payment for vehicle rental",
         handler: async (response) => {
           try {
             const verify = await axiosInstance.post(`${BASE}/payments/verify-payment`, response);
-            alert("✅ Payment successful and verified!");
+            toast.success("Payment successful and verified!");
             setCartItems([]);
+            localStorage.removeItem('rentalDetails');
             navigate("/order-success");
           } catch (error) {
-            alert("Payment succeeded but verification failed.");
+            toast.error("Payment succeeded but verification failed.");
           }
         },
         prefill: {
@@ -143,33 +181,28 @@ export default function CartPage() {
           contact: user?.phone || "9876543210",
         },
         theme: {
-          color: "#3399cc",
+          color: "#3b82f6",
         },
       };
-  
+
       const rzp = new window.Razorpay(options);
-  
+
       rzp.on("payment.failed", function (response) {
-        alert(`Payment failed: ${response.error.description || "Something went wrong."}`);
+        toast.error(`Payment failed: ${response.error.description || "Something went wrong."}`);
       });
-  
+
       rzp.open();
     } catch (error) {
-      alert("Failed to initiate payment. Please try again.");
+      toast.error("Failed to initiate payment. Please try again.");
     }
   };
-  
-  
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-teal-100 to-green-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950">
         <div className="text-center">
-          <svg className="animate-spin h-14 w-14 mx-auto text-teal-600 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-          <p className="text-xl text-gray-600">Loading your refreshing cart…</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-xl text-blue-300 animate-pulse">Loading your cart...</p>
         </div>
       </div>
     );
@@ -177,64 +210,137 @@ export default function CartPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-teal-100 to-green-100">
-        <div className="text-center">
-          <svg className="h-14 w-14 mx-auto text-red-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938-9.414a2 2 0 00-2.828 2.828L11.828 15.172a2 2 0 002.828-2.828L5.86 5.86z" />
-          </svg>
-          <p className="text-2xl text-red-600 font-bold">{error}</p>
-          {error.includes("log in") && (
-            <Link to="/login" className="text-teal-600 hover:underline mt-3 block">
-              Return to Login
-            </Link>
-          )}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 px-4">
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl blur opacity-50"></div>
+          <div className="relative bg-slate-900/90 backdrop-blur-xl p-8 rounded-xl border border-red-500/50 text-center">
+            <p className="text-2xl text-red-300 font-bold mb-4">{error}</p>
+            {error.includes("log in") && (
+              <Link to="/login" className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all">
+                Go to Login
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-teal-100 to-green-100 min-h-screen p-8 text-gray-800">
-      <div className="container mx-auto mt-12">
-        <div className="bg-teal-600 text-white py-8 px-10 rounded-t-lg shadow-md mb-8">
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            <span className="mr-3 text-white">🌿</span> Your Serene Cart
-          </h1>
+    <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 min-h-screen py-8 md:py-12 px-4 md:px-8 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f46e510_1px,transparent_1px),linear-gradient(to_bottom,#4f46e510_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+
+      <div className="container mx-auto relative z-10 max-w-7xl">
+        {/* Header */}
+        <div className="relative group mb-8">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30"></div>
+          <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 md:p-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+              <FaCar className="text-blue-400" />
+              Your Rental Cart
+            </h1>
+            <p className="text-slate-400 mt-2">Review your vehicle rentals and proceed to checkout</p>
+          </div>
         </div>
 
-        <div className="bg-white shadow-lg rounded-b-lg overflow-hidden">
-          <div className="p-8">
-            {cartItems.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-2xl text-gray-600 mb-6">Your cart is peacefully empty.</p>
-                <Link to="/products" className="inline-block px-8 py-4 bg-teal-500 text-white rounded-full font-bold text-lg hover:bg-teal-600">
-                  Find Some Green Goodies!
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
-                <div className="md:col-span-2 space-y-8">
-                  {cartItems.map((item) => (
-                    <div key={item.vehicleId} className="bg-white rounded-lg shadow-md border border-gray-200">
-                      <div className="flex items-center p-6">
-                        <div className="w-48 h-48 mr-10 overflow-hidden rounded-lg shadow-sm">
-                          <img src={item.vehicleImage} alt={item.vehicleName} className="w-full h-full object-cover" />
+        {cartItems.length === 0 ? (
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30"></div>
+            <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-12 text-center">
+              <div className="text-6xl mb-6">🛒</div>
+              <p className="text-2xl text-slate-300 mb-6">Your cart is empty</p>
+              <Link
+                to="/vehicles"
+                className="inline-block px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg font-semibold text-lg transition-all"
+              >
+                Browse Vehicles
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-6">
+              {cartItems.map((item) => {
+                const rental = getRentalDetailsForVehicle(item.vehicleId);
+                return (
+                  <div key={item.vehicleId} className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+
+                    <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-700/50 overflow-hidden">
+                      <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4">
+                        {/* Vehicle Image */}
+                        <div className="w-full md:w-48 h-48 flex-shrink-0 overflow-hidden rounded-lg">
+                          <img
+                            src={item.vehicleImage || 'https://via.placeholder.com/200x200.png?text=No+Image'}
+                            alt={item.vehicleName}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
                         </div>
+
+                        {/* Vehicle Details */}
                         <div className="flex-grow">
-                          <h2 className="text-2xl font-semibold text-teal-600 mb-3">{item.vehicleName}</h2>
-                          <p className="text-gray-600 text-lg mb-3">
-                            Price: <span className="font-semibold text-gray-800">₹{item.price}</span>
-                          </p>
-                          <div className="flex items-center">
-                            <label htmlFor={`quantity-${item.vehicleId}`} className="mr-4 text-gray-700 font-semibold text-lg">Quantity:</label>
-                            <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                              <button onClick={() => decrementQuantity(item.vehicleId)} className="px-4 py-2 hover:bg-gray-100">
-                                <MinusIcon className="h-6 w-6" />
+                          <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
+                            {item.vehicleName}
+                          </h2>
+
+                          <div className="space-y-2 mb-4">
+                            <p className="text-slate-300">
+                              <span className="text-slate-400">Price per day:</span>
+                              <span className="font-semibold text-blue-400 ml-2">₹{item.price.toFixed(2)}</span>
+                            </p>
+
+                            {rental && (
+                              <>
+                                <div className="flex items-center gap-2 text-sm text-slate-300">
+                                  <FaCalendarAlt className="text-green-400" />
+                                  <span>
+                                    {new Date(rental.startDate).toLocaleDateString()} - {new Date(rental.endDate).toLocaleDateString()}
+                                  </span>
+                                  <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs ml-2">
+                                    {rental.rentalDays} day{rental.rentalDays > 1 ? 's' : ''}
+                                  </span>
+                                </div>
+
+                                {rental.withInsurance && (
+                                  <div className="flex items-center gap-2 text-sm text-green-400">
+                                    <FaShieldAlt />
+                                    <span>Insurance included (+₹{(item.price * 0.1 * rental.rentalDays).toFixed(2)})</span>
+                                  </div>
+                                )}
+
+                                {rental.withDriver && (
+                                  <div className="flex items-center gap-2 text-sm text-purple-400">
+                                    <FaUserTie />
+                                    <span>Driver included (+₹{(500 * rental.rentalDays).toFixed(2)})</span>
+                                  </div>
+                                )}
+
+                                {rental.pickupLocation && (
+                                  <p className="text-sm text-slate-400">
+                                    <span className="font-medium">Pickup:</span> {rental.pickupLocation}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          {/* Quantity Controls */}
+                          <div className="flex items-center gap-3">
+                            <span className="text-slate-400 text-sm">Quantity:</span>
+                            <div className="flex items-center bg-slate-800 border border-slate-600 rounded-lg overflow-hidden">
+                              <button
+                                onClick={() => decrementQuantity(item.vehicleId)}
+                                className="px-3 py-2 hover:bg-slate-700 transition-colors text-white"
+                              >
+                                <FaMinus className="h-3 w-3" />
                               </button>
                               <input
                                 type="number"
-                                id={`quantity-${item.vehicleId}`}
-                                className="w-20 text-center bg-white border-l border-r border-gray-300 focus:outline-none"
+                                className="w-16 text-center bg-slate-800 border-l border-r border-slate-600 text-white focus:outline-none py-2"
                                 value={item.quantity}
                                 onChange={(e) => {
                                   const val = parseInt(e.target.value);
@@ -242,60 +348,94 @@ export default function CartPage() {
                                 }}
                                 min="1"
                               />
-                              <button onClick={() => incrementQuantity(item.vehicleId)} className="px-4 py-2 hover:bg-gray-100">
-                                <PlusIcon className="h-6 w-6" />
+                              <button
+                                onClick={() => incrementQuantity(item.vehicleId)}
+                                className="px-3 py-2 hover:bg-slate-700 transition-colors text-white"
+                              >
+                                <FaPlus className="h-3 w-3" />
                               </button>
                             </div>
                           </div>
                         </div>
-                        <div className="ml-4 text-right">
-                          <p className="text-2xl font-bold text-teal-600">₹{item.price * item.quantity}</p>
-                          <button onClick={() => handleRemoveItem(item.vehicleId)} className="text-red-500 hover:text-red-600 mt-4 flex items-center">
-                            <TrashIcon className="h-6 w-6 mr-2" /> Remove
+
+                        {/* Price and Remove */}
+                        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 mt-4 md:mt-0">
+                          <div className="text-right">
+                            <p className="text-sm text-slate-400 mb-1">Total</p>
+                            <p className="text-2xl md:text-3xl font-bold text-blue-400">
+                              ₹{calculateItemTotal(item).toFixed(2)}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveItem(item.vehicleId)}
+                            className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                            <span className="text-sm">Remove</span>
                           </button>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                );
+              })}
+            </div>
 
-                <div className="md:col-span-1">
-                  <div className="bg-white rounded-lg shadow-md p-8">
-                    <h2 className="text-2xl font-semibold text-teal-600 mb-6">Order Summary</h2>
-                    <div className="flex justify-between text-gray-600 mb-4 text-lg">
-                      <span>Subtotal</span>
-                      <span className="font-semibold text-gray-800">₹{calculateTotal()}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600 mb-6 text-lg">
-                      <span>Shipping</span>
-                      <span className="font-semibold text-gray-800">Calculated at checkout</span>
-                    </div>
-                    <div className="border-t border-gray-300 pt-6">
-                      <div className="flex justify-between text-3xl font-bold text-teal-600 mb-8">
-                        <span>Total</span>
-                        <span>₹{calculateTotal()}</span>
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-8">
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30"></div>
+
+                  <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6">
+                    <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
+
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between text-slate-300">
+                        <span>Subtotal</span>
+                        <span className="font-semibold text-white">₹{calculateSubtotal().toFixed(2)}</span>
                       </div>
-                      <button
-                        onClick={handleCheckout}
-                        disabled={cartItems.length === 0}
-                        className={`w-full rounded-full py-4 text-xl font-semibold transition duration-200 ${
-                          cartItems.length === 0
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-teal-500 text-white hover:bg-teal-600"
-                        }`}
-                      >
-                        Proceed to Checkout
-                      </button>
-                      <Link to="/products" className="block mt-6 text-center text-gray-600 hover:underline text-lg">
-                        Continue Browsing
-                      </Link>
+                      <div className="flex justify-between text-slate-300">
+                        <span>Tax (5%)</span>
+                        <span className="font-semibold text-white">₹{calculateTax().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-400 text-sm">
+                        <span>Total Items</span>
+                        <span>{cartItems.length}</span>
+                      </div>
                     </div>
+
+                    <hr className="border-slate-700 mb-6" />
+
+                    <div className="flex justify-between text-xl md:text-2xl font-bold text-white mb-8">
+                      <span>Total</span>
+                      <span className="text-blue-400">₹{calculateTotal().toFixed(2)}</span>
+                    </div>
+
+                    <button
+                      onClick={handleCheckout}
+                      disabled={cartItems.length === 0}
+                      className={`w-full py-4 rounded-lg font-semibold text-lg transition-all mb-4 ${
+                        cartItems.length === 0
+                          ? "bg-slate-700 text-slate-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white transform hover:scale-105"
+                      }`}
+                    >
+                      Proceed to Checkout
+                    </button>
+
+                    <Link
+                      to="/vehicles"
+                      className="block text-center text-slate-400 hover:text-blue-400 transition-colors"
+                    >
+                      Continue Browsing
+                    </Link>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

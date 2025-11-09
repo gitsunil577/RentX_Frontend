@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { FaCar, FaCalendarAlt, FaUserTie, FaRupeeSign } from "react-icons/fa";
 
 // Base API URL
@@ -12,7 +10,6 @@ function VehicleDetails() {
   const { id } = useParams();
   const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -54,46 +51,6 @@ function VehicleDetails() {
       setError("No vehicle ID provided.");
     }
   }, [id]);
-
-  // 🚗 Add to Booking handler
-  const handleAddToBooking = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      toast.error("You must be logged in to book a vehicle.");
-      return;
-    }
-
-    if (!vehicle?._id) {
-      toast.error("Vehicle details not loaded yet.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${API_BASE_URL}/cart/add-to-cart`,
-        {
-          vehicleId: vehicle._id,
-          quantity: 1,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (res.data) {
-        toast.success("Vehicle added to booking!");
-      }
-    } catch (err) {
-      console.error("Add to booking error:", err);
-      toast.error(err.response?.data?.message || "Error adding to booking");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!vehicle && !error) {
     return (
@@ -220,35 +177,6 @@ function VehicleDetails() {
                         {vehicle.ownerID.gstNumber}
                       </p>
                     )}
-                  </div>
-                </div>
-
-                {/* Action Buttons Section */}
-                <div className="mt-8 pt-4 border-t border-slate-700">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button
-                      onClick={handleAddToBooking}
-                      disabled={!vehicle.stock || vehicle.stock <= 0 || loading}
-                      className={`w-full sm:w-auto flex-1 relative overflow-hidden text-white text-lg font-semibold px-8 py-4 rounded-lg transform focus:outline-none transition duration-300 ease-in-out ${
-                        vehicle.stock > 0
-                          ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 hover:scale-105 active:scale-100"
-                          : "opacity-50 cursor-not-allowed bg-slate-700"
-                      }`}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                      <span className="relative">{loading ? "Adding..." : "Add to Booking"}</span>
-                    </button>
-
-                    <button
-                      disabled={!vehicle.stock || vehicle.stock <= 0}
-                      className={`w-full sm:w-auto flex-1 relative overflow-hidden text-white text-lg font-semibold px-8 py-4 rounded-lg transform focus:outline-none transition duration-300 ease-in-out ${
-                        vehicle.stock > 0
-                          ? "bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 hover:scale-105 active:scale-100 border border-slate-600"
-                          : "opacity-50 cursor-not-allowed bg-slate-800"
-                      }`}
-                    >
-                      <span className="relative">Rent Now</span>
-                    </button>
                   </div>
                 </div>
               </div>

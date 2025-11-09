@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaUserPlus } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaUserPlus, FaStore, FaShoppingCart } from "react-icons/fa";
 
 function RegisterPage() {
+  const [userType, setUserType] = useState("Buyer"); // "Buyer" or "Owner"
   const [fullName, setFullName] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
@@ -52,6 +53,7 @@ function RegisterPage() {
         username: userName,
         email,
         password,
+        typeOfCustomer: userType,
       });
 
       console.log("Registration success:", response.data);
@@ -166,6 +168,69 @@ function RegisterPage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* User Type Selection */}
+                <div className="mb-6">
+                  <label className="block text-slate-300 mb-3 text-sm font-medium text-center">
+                    I want to register as:
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Customer Option */}
+                    <button
+                      type="button"
+                      onClick={() => setUserType("Buyer")}
+                      className={`relative group/type h-24 rounded-xl transition-all duration-300 overflow-hidden ${
+                        userType === "Buyer"
+                          ? 'ring-2 ring-blue-500'
+                          : 'hover:scale-105'
+                      }`}
+                    >
+                      <div className={`absolute inset-0 transition-all duration-300 ${
+                        userType === "Buyer"
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+                          : 'bg-slate-800/50 border-2 border-slate-600'
+                      }`}></div>
+                      <div className="relative h-full flex flex-col items-center justify-center gap-2 text-white">
+                        <FaShoppingCart className={`h-8 w-8 transition-transform duration-300 ${
+                          userType === "Buyer" ? 'scale-110' : 'group-hover/type:scale-110'
+                        }`} />
+                        <span className="font-semibold">Customer</span>
+                        <span className="text-xs text-slate-300">Rent Vehicles</span>
+                      </div>
+                    </button>
+
+                    {/* Owner Option */}
+                    <button
+                      type="button"
+                      onClick={() => setUserType("Owner")}
+                      className={`relative group/type h-24 rounded-xl transition-all duration-300 overflow-hidden ${
+                        userType === "Owner"
+                          ? 'ring-2 ring-blue-500'
+                          : 'hover:scale-105'
+                      }`}
+                    >
+                      <div className={`absolute inset-0 transition-all duration-300 ${
+                        userType === "Owner"
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+                          : 'bg-slate-800/50 border-2 border-slate-600'
+                      }`}></div>
+                      <div className="relative h-full flex flex-col items-center justify-center gap-2 text-white">
+                        <FaStore className={`h-8 w-8 transition-transform duration-300 ${
+                          userType === "Owner" ? 'scale-110' : 'group-hover/type:scale-110'
+                        }`} />
+                        <span className="font-semibold">Owner</span>
+                        <span className="text-xs text-slate-300">List Vehicles</span>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Info Text */}
+                  <p className="mt-3 text-xs text-center text-slate-400">
+                    {userType === "Buyer"
+                      ? "📱 Browse and rent vehicles from different owners"
+                      : "🏪 List your vehicles and manage bookings from customers"}
+                  </p>
+                </div>
+
                 {/* Full Name Input */}
                 <div className="relative group/input">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-0 group-hover/input:opacity-30 transition duration-300"></div>
