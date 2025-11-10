@@ -28,14 +28,17 @@ export default function LoginPage() {
 
       console.log("Login successful:", response.data);
 
-      const { accessToken, refreshToken } = response.data.message;
+      const { accessToken, refreshToken, user } = response.data.message;
 
-      // Store login status and tokens
+      // Store login status, tokens, and user data
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("user", JSON.stringify(user)); // Store complete user object
+      localStorage.setItem("userData", JSON.stringify(user)); // Also store as userData for consistency
 
       console.log("Access token set in storage:", accessToken);
+      console.log("User data stored:", user);
 
       setSuccessMessage("Login successful! Redirecting...");
       setError("");

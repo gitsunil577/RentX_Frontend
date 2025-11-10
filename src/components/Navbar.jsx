@@ -20,8 +20,14 @@ const Navbar = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("rentalDetails");
     setIsLoggedIn(false);
     setCartCount(0);
+    setUserType(null);
+    setHasOwnerID(false);
+    console.log("✅ Session cleared, user logged out");
     navigate("/login");
   };
 
@@ -60,14 +66,22 @@ const Navbar = () => {
 
       // Get user info to determine type
       const userData = localStorage.getItem("userData") || localStorage.getItem("user");
+      console.log("📊 Navbar - Raw user data from localStorage:", userData);
+
       if (userData) {
         try {
           const userInfo = JSON.parse(userData);
+          console.log("📊 Navbar - Parsed user info:", userInfo);
+          console.log("📊 Navbar - Type of Customer:", userInfo.typeOfCustomer);
+          console.log("📊 Navbar - Has OwnerID:", !!userInfo.ownerID);
+
           setUserType(userInfo.typeOfCustomer);
           setHasOwnerID(!!userInfo.ownerID);
         } catch (err) {
-          console.error("Error parsing user data:", err);
+          console.error("❌ Error parsing user data:", err);
         }
+      } else {
+        console.log("⚠️ No user data found in localStorage");
       }
     } else {
       setCartCount(0);
@@ -171,23 +185,35 @@ const Navbar = () => {
             </button>
           )}
 
-          {/* Bookings link - Show appropriate version based on user type */}
-          {isLoggedIn && (
-            <NavLink
-              to={userType === "Owner" && hasOwnerID ? "/owner-bookings" : "/my-bookings"}
-              className={({ isActive }) =>
-                `py-2.5 px-5 rounded-lg font-medium transition-all duration-300 relative group ${
-                  isActive
-                    ? "bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg shadow-green-500/30"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/50"
-                }`
-              }
-            >
-              <span className="relative z-10">
-                {userType === "Owner" && hasOwnerID ? "Vehicle Bookings" : "My Bookings"}
-              </span>
-            </NavLink>
-          )}
+          {/* Bookings/Dashboard link - Show appropriate version based on user type */}
+          {isLoggedIn && (() => {
+            const isOwner = userType === "Owner" && hasOwnerID;
+            const linkTo = isOwner ? "/owner-dashboard" : "/my-bookings";
+            const linkText = isOwner ? "Dashboard" : "My Bookings";
+
+            console.log("🔗 Navbar Link Decision:", {
+              userType,
+              hasOwnerID,
+              isOwner,
+              linkTo,
+              linkText
+            });
+
+            return (
+              <NavLink
+                to={linkTo}
+                className={({ isActive }) =>
+                  `py-2.5 px-5 rounded-lg font-medium transition-all duration-300 relative group ${
+                    isActive
+                      ? "bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg shadow-green-500/30"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                  }`
+                }
+              >
+                <span className="relative z-10">{linkText}</span>
+              </NavLink>
+            );
+          })()}
 
           {isLoggedIn ? (
             <button
@@ -268,10 +294,10 @@ const Navbar = () => {
               </button>
             )}
 
-            {/* Bookings link - Show appropriate version based on user type */}
+            {/* Bookings/Dashboard link - Show appropriate version based on user type */}
             {isLoggedIn && (
               <NavLink
-                to={userType === "Owner" && hasOwnerID ? "/owner-bookings" : "/my-bookings"}
+                to={userType === "Owner" && hasOwnerID ? "/owner-dashboard" : "/my-bookings"}
                 className={({ isActive }) =>
                   `py-3 px-4 rounded-lg font-medium transition-all ${
                     isActive
@@ -281,7 +307,7 @@ const Navbar = () => {
                 }
                 onClick={() => setIsOpen(false)}
               >
-                {userType === "Owner" && hasOwnerID ? "Vehicle Bookings" : "My Bookings"}
+                {userType === "Owner" && hasOwnerID ? "Dashboard" : "My Bookings"}
               </NavLink>
             )}
 

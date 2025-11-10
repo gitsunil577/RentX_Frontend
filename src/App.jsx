@@ -22,7 +22,8 @@ import RegisterOwner from './components/RegisterOwner';
 import CartPage from './components/CartPage';
 import OrderSuccess from './components/OrderSuccess';
 import BookingHistory from './components/BookingHistory';
-import OwnerBookings from './components/OwnerBookings';
+import OwnerDashboard from './components/OwnerDashboard';
+import UserDebugPanel from './components/UserDebugPanel';
 import { RequireAuth, OwnerOnlyRoute } from './components/ProtectedRoute';
 
 import ScrollToTop from './components/ScrollToTop';
@@ -53,6 +54,9 @@ function AppContent() {
         draggable
       />
 
+      {/* 🔍 Debug Panel - Remove this after testing */}
+      
+
       <div className={noPaddingPaths.includes(location.pathname) ? "min-h-screen" : "min-h-screen pt-16"} style={noPaddingPaths.includes(location.pathname) ? {} : { paddingBottom: '70px' }}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -66,7 +70,7 @@ function AppContent() {
           <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
           <Route path="/order-success" element={<RequireAuth><OrderSuccess /></RequireAuth>} />
           <Route path="/my-bookings" element={<RequireAuth><BookingHistory /></RequireAuth>} />
-          <Route path="/owner-bookings" element={<OwnerOnlyRoute><OwnerBookings /></OwnerOnlyRoute>} />
+          <Route path="/owner-dashboard" element={<OwnerOnlyRoute><OwnerDashboard /></OwnerOnlyRoute>} />
           <Route path="/owner/register" element={<RequireAuth><RegisterOwner /></RequireAuth>} />
           <Route path="/vehicle/register" element={<OwnerOnlyRoute><RegisterVehicle /></OwnerOnlyRoute>} />
         </Routes>
