@@ -1,8 +1,69 @@
-import React, { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaCar, FaMotorcycle, FaBicycle, FaArrowRight, FaStar } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 function Hero() {
+  const navigate = useNavigate();
+  const [userDataVersion, setUserDataVersion] = useState(0);
+
+  // Listen for user data updates
+  useEffect(() => {
+    const handleUserDataUpdate = () => {
+      setUserDataVersion(prev => prev + 1);
+      console.log('🔄 Hero: User data updated, refreshing...');
+    };
+
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+    return () => window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+  }, []);
+
+  // Check if user can list vehicles (must have ownerID)
+  const handleListVehicleClick = (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast.warning('Please login to list your vehicle!', {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      navigate('/login');
+      return;
+    }
+
+    const userDataString = localStorage.getItem('userData') || localStorage.getItem('user');
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString);
+
+        // Check if user has registered as owner (has ownerID)
+        if (userData.ownerID) {
+          // User has completed owner registration, proceed to vehicle registration
+          console.log('✅ User has ownerID, navigating to vehicle registration');
+          navigate('/vehicle/register');
+        } else {
+          // User hasn't registered as owner yet, show alert
+          console.log('❌ No ownerID found, prompting to register as owner');
+          toast.info('📢 Please register as an Owner to list your vehicles!', {
+            position: "top-center",
+            autoClose: 4000,
+          });
+          // Redirect to owner registration after a delay
+          setTimeout(() => {
+            navigate('/owner/register');
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        navigate('/vehicle/register'); // Fallback to route protection
+      }
+    } else {
+      // No user data found, let route protection handle it
+      navigate('/vehicle/register');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center relative overflow-hidden w-full">
       {/* Animated Grid Background */}
@@ -146,13 +207,13 @@ function Hero() {
               </span>
             </Link>
 
-            <Link
-              to="/vehicle/register"
-              className="group/reg w-full sm:w-auto px-12 h-16 border-2 border-slate-600 rounded-xl text-slate-300 bg-transparent hover:bg-slate-800/50 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 transition-all duration-300 font-semibold text-lg uppercase tracking-wider hover:scale-[1.05] active:scale-[0.98] relative overflow-hidden inline-flex items-center justify-center"
+            <button
+              onClick={handleListVehicleClick}
+              className="group/reg w-full sm:w-auto px-12 h-16 border-2 border-slate-600 rounded-xl text-slate-300 bg-transparent hover:bg-slate-800/50 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 transition-all duration-300 font-semibold text-lg uppercase tracking-wider hover:scale-[1.05] active:scale-[0.98] relative overflow-hidden inline-flex items-center justify-center cursor-pointer"
             >
               <span className="relative z-10">List Your Vehicle</span>
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/10 to-purple-600/0 translate-x-[-100%] group-hover/reg:translate-x-[100%] transition-transform duration-700"></div>
-            </Link>
+            </button>
           </div>
         </div>
       </div>

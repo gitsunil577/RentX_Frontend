@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaCar, FaCalendarAlt, FaUserTie, FaRupeeSign } from "react-icons/fa";
 
@@ -8,8 +8,26 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function VehicleDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check user authentication and get user info
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    setIsAuthenticated(!!token);
+
+    const userData = localStorage.getItem("userData") || localStorage.getItem("user");
+    if (userData) {
+      try {
+        setUserInfo(JSON.parse(userData));
+      } catch (err) {
+        console.error("Error parsing user data:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -163,7 +181,7 @@ function VehicleDetails() {
 
                   {/* Owner Information */}
                   <hr className="my-6 border-slate-700" />
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-sm mb-6">
                     <div className="flex items-center gap-2">
                       <FaUserTie className="text-purple-400" />
                       <p className="text-slate-400">
@@ -178,6 +196,64 @@ function VehicleDetails() {
                       </p>
                     )}
                   </div>
+                </div>
+
+                {/* Conditional Booking Actions */}
+                <div className="mt-auto pt-6">
+                  {/* Check if this is the owner's own vehicle */}
+                  {isAuthenticated && userInfo?.ownerID && vehicle.ownerID?._id === userInfo.ownerID ? (
+                    // This is the owner's own vehicle
+                    <div className="border-2 border-orange-500/50 bg-orange-500/10 p-6 rounded-xl backdrop-blur-sm">
+                      <div className="font-bold text-orange-400 text-lg mb-3 flex items-center gap-2">
+                        <FaUserTie />
+                        Your Vehicle
+                      </div>
+                      <p className="text-orange-300 text-sm mb-4 leading-relaxed">
+                        This is your listed vehicle. You cannot book your own vehicles. However, you can book vehicles from other owners!
+                      </p>
+                      <button
+                        onClick={() => navigate("/vehicles")}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:scale-[1.02]"
+                      >
+                        Browse Other Vehicles
+                      </button>
+                    </div>
+                  ) : isAuthenticated && vehicle.stock > 0 ? (
+                    // Authenticated user (Buyer or Owner) viewing other vehicles
+                    <button
+                      onClick={() => navigate(`/vehicles`)}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 text-lg"
+                    >
+                      <FaCalendarAlt className="text-xl" />
+                      Book This Vehicle
+                    </button>
+                  ) : isAuthenticated && vehicle.stock <= 0 ? (
+                    // Vehicle unavailable
+                    <div className="border-2 border-red-500/50 bg-red-500/10 p-6 rounded-xl backdrop-blur-sm">
+                      <div className="font-bold text-red-400 text-lg mb-2">
+                        Vehicle Not Available
+                      </div>
+                      <p className="text-red-300 text-sm">
+                        This vehicle is currently not available for rent. Please check back later or browse other vehicles.
+                      </p>
+                    </div>
+                  ) : (
+                    // Not authenticated
+                    <div className="border-2 border-blue-500/50 bg-blue-500/10 p-6 rounded-xl backdrop-blur-sm">
+                      <div className="font-bold text-blue-400 text-lg mb-3">
+                        Login to Book
+                      </div>
+                      <p className="text-blue-300 text-sm mb-4">
+                        Please log in to your account to book this vehicle.
+                      </p>
+                      <button
+                        onClick={() => navigate("/login")}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:scale-[1.02]"
+                      >
+                        Login Now
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

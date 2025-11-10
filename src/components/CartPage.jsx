@@ -162,17 +162,51 @@ export default function CartPage() {
         amount: order.amount,
         currency: order.currency,
         order_id: order.id,
-        name: "E-Rental System",
+        name: "RentX",
         description: "Payment for vehicle rental",
         handler: async (response) => {
           try {
-            const verify = await axiosInstance.post(`${BASE}/payments/verify-payment`, response);
-            toast.success("Payment successful and verified!");
-            setCartItems([]);
-            localStorage.removeItem('rentalDetails');
-            navigate("/order-success");
+            console.log("💳 Payment successful, verifying and creating bookings...");
+            console.log("Cart Items:", cartItems);
+            console.log("Rental Details:", rentalDetails);
+
+            // Include cart items and rental details for booking creation
+            const verify = await axiosInstance.post(`${BASE}/payments/verify-payment`, {
+              ...response,
+              cartItems: cartItems,
+              rentalDetails: rentalDetails
+            });
+
+            console.log("✅ Verification response:", verify.data);
+
+            if (verify.data?.success) {
+              toast.success("Payment successful! Bookings created.");
+              console.log("📦 Bookings created:", verify.data.bookings);
+
+              // Clear cart from backend
+              try {
+                console.log("🧹 Clearing cart from backend...");
+                await axios.delete(`${BASE}/cart/clear-cart`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                console.log("✅ Cart cleared from backend");
+              } catch (clearError) {
+                console.error("❌ Error clearing cart:", clearError);
+              }
+
+              // Clear local state and storage
+              setCartItems([]);
+              localStorage.removeItem('rentalDetails');
+              console.log("✅ Local cart cleared, redirecting to success page");
+              navigate("/order-success");
+            } else {
+              console.error("❌ Booking creation failed:", verify.data);
+              toast.error("Payment verified but booking creation failed. Please contact support.");
+            }
           } catch (error) {
-            toast.error("Payment succeeded but verification failed.");
+            console.error("❌ Verification error:", error);
+            console.error("Error details:", error.response?.data);
+            toast.error(error.response?.data?.message || "Payment succeeded but verification failed. Please contact support.");
           }
         },
         prefill: {

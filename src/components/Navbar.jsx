@@ -10,6 +10,8 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [error, setError] = useState("");
+  const [userType, setUserType] = useState(null);
+  const [hasOwnerID, setHasOwnerID] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -52,8 +54,26 @@ const Navbar = () => {
   useEffect(() => {
     const loggedIn = localStorage.getItem("isLoggedIn") === "true";
     setIsLoggedIn(loggedIn);
-    if (loggedIn) fetchCartCount();
-    else setCartCount(0);
+
+    if (loggedIn) {
+      fetchCartCount();
+
+      // Get user info to determine type
+      const userData = localStorage.getItem("userData") || localStorage.getItem("user");
+      if (userData) {
+        try {
+          const userInfo = JSON.parse(userData);
+          setUserType(userInfo.typeOfCustomer);
+          setHasOwnerID(!!userInfo.ownerID);
+        } catch (err) {
+          console.error("Error parsing user data:", err);
+        }
+      }
+    } else {
+      setCartCount(0);
+      setUserType(null);
+      setHasOwnerID(false);
+    }
   }, [location.pathname]);
 
   // Listen for login status changes in other tabs
@@ -136,6 +156,7 @@ const Navbar = () => {
             </NavLink>
           ))}
 
+          {/* Cart button - Show for ALL logged-in users (Buyers and Owners) */}
           {isLoggedIn && (
             <button
               onClick={handleCartClick}
@@ -148,6 +169,24 @@ const Navbar = () => {
                 </span>
               )}
             </button>
+          )}
+
+          {/* Bookings link - Show appropriate version based on user type */}
+          {isLoggedIn && (
+            <NavLink
+              to={userType === "Owner" && hasOwnerID ? "/owner-bookings" : "/my-bookings"}
+              className={({ isActive }) =>
+                `py-2.5 px-5 rounded-lg font-medium transition-all duration-300 relative group ${
+                  isActive
+                    ? "bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg shadow-green-500/30"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                }`
+              }
+            >
+              <span className="relative z-10">
+                {userType === "Owner" && hasOwnerID ? "Vehicle Bookings" : "My Bookings"}
+              </span>
+            </NavLink>
           )}
 
           {isLoggedIn ? (
@@ -211,6 +250,7 @@ const Navbar = () => {
               </NavLink>
             ))}
 
+            {/* Cart button - Show for ALL logged-in users (Buyers and Owners) */}
             {isLoggedIn && (
               <button
                 onClick={() => {
@@ -226,6 +266,23 @@ const Navbar = () => {
                   </span>
                 )}
               </button>
+            )}
+
+            {/* Bookings link - Show appropriate version based on user type */}
+            {isLoggedIn && (
+              <NavLink
+                to={userType === "Owner" && hasOwnerID ? "/owner-bookings" : "/my-bookings"}
+                className={({ isActive }) =>
+                  `py-3 px-4 rounded-lg font-medium transition-all ${
+                    isActive
+                      ? "bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                  }`
+                }
+                onClick={() => setIsOpen(false)}
+              >
+                {userType === "Owner" && hasOwnerID ? "Vehicle Bookings" : "My Bookings"}
+              </NavLink>
             )}
 
             {isLoggedIn ? (

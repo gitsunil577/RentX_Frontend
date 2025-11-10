@@ -28,10 +28,11 @@ function Products() {
 
     useEffect(() => {
         // Get user info from localStorage
-        const userInfo = JSON.parse(localStorage.getItem('user') || 'null');
+        const userInfo = JSON.parse(localStorage.getItem('user') || localStorage.getItem('userData') || 'null');
         if (userInfo) {
             setUserType(userInfo.typeOfCustomer);
             setUserOwnerId(userInfo.ownerID);
+            console.log("👤 User Type:", userInfo.typeOfCustomer, "Owner ID:", userInfo.ownerID);
         }
 
         const fetchAllProducts = async () => {
@@ -110,9 +111,9 @@ function Products() {
     const handleRentNow = (product, e) => {
         e.stopPropagation();
 
-        // Check if user is an owner - owners cannot rent vehicles
-        if (userType === "Owner") {
-            toast.info("Owners cannot rent vehicles. Switch to a customer account to book rentals.");
+        // Check if owner is trying to rent their own vehicle
+        if (userOwnerId && product.ownerID?._id === userOwnerId) {
+            toast.error("You cannot rent your own vehicle!");
             return;
         }
 
@@ -335,18 +336,31 @@ function Products() {
                                                 <span className="relative text-sm">View Details</span>
                                             </button>
 
-                                            <button
-                                                onClick={(e) => handleRentNow(product, e)}
-                                                disabled={!product.stock || product.stock <= 0}
-                                                className={`flex-1 text-center font-semibold py-2.5 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                                                    product.stock > 0
-                                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white'
-                                                        : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                                }`}
-                                            >
-                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                                                <span className="relative text-sm">Rent Now</span>
-                                            </button>
+                                            {/* Check if this vehicle belongs to the logged-in owner */}
+                                            {userOwnerId && product.ownerID?._id === userOwnerId ? (
+                                                // This is the owner's own vehicle
+                                                <button
+                                                    disabled
+                                                    title="This is your vehicle. You cannot book your own vehicles."
+                                                    className="flex-1 bg-gradient-to-r from-orange-600/50 to-orange-700/50 text-orange-300 text-center font-semibold py-2.5 rounded-lg cursor-not-allowed border border-orange-500/30"
+                                                >
+                                                    <span className="text-sm">Your Vehicle</span>
+                                                </button>
+                                            ) : (
+                                                // Vehicle from other owners or user is a buyer
+                                                <button
+                                                    onClick={(e) => handleRentNow(product, e)}
+                                                    disabled={!product.stock || product.stock <= 0}
+                                                    className={`flex-1 text-center font-semibold py-2.5 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                                                        product.stock > 0
+                                                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white'
+                                                            : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                                    }`}
+                                                >
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                                    <span className="relative text-sm">Rent Now</span>
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

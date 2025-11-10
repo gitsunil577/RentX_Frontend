@@ -35,6 +35,29 @@ export default function RegisterOwner() {
 
       setSuccessMessage("Owner registered successfully! Redirecting...");
 
+      // Fetch updated user data to get the ownerID
+      try {
+        const userResponse = await axios.get(`${BASE}/user/current-user`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const updatedUserData = userResponse.data?.data;
+
+        if (updatedUserData) {
+          // Update localStorage with the new user data including ownerID
+          localStorage.setItem('userData', JSON.stringify(updatedUserData));
+          localStorage.setItem('user', JSON.stringify(updatedUserData));
+
+          // Dispatch event to notify other components
+          window.dispatchEvent(new Event('userDataUpdated'));
+
+          console.log('✅ User data updated after owner registration:', updatedUserData);
+        }
+      } catch (fetchError) {
+        console.error('Error fetching updated user data:', fetchError);
+        // Continue anyway - route protection will handle it
+      }
+
       // If registration successful, go to vehicle register page
       setTimeout(() => {
         navigate("/vehicle/register");
@@ -50,6 +73,23 @@ export default function RegisterOwner() {
         (errorMsg.includes("Owner already Exists") ||
          errorMsg.includes("already exists"))
       ) {
+        // Owner already exists, fetch user data and redirect
+        try {
+          const userResponse = await axios.get(`${BASE}/user/current-user`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          const updatedUserData = userResponse.data?.data;
+
+          if (updatedUserData) {
+            localStorage.setItem('userData', JSON.stringify(updatedUserData));
+            localStorage.setItem('user', JSON.stringify(updatedUserData));
+            window.dispatchEvent(new Event('userDataUpdated'));
+          }
+        } catch (fetchError) {
+          console.error('Error fetching user data:', fetchError);
+        }
+
         // Redirect to vehicle registration if owner already exists
         navigate("/vehicle/register");
       } else {

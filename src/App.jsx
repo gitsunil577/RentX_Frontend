@@ -20,6 +20,10 @@ import RegisterVehicle from './components/RegisterVehicle';
 import RegisterOwner from './components/RegisterOwner';
 
 import CartPage from './components/CartPage';
+import OrderSuccess from './components/OrderSuccess';
+import BookingHistory from './components/BookingHistory';
+import OwnerBookings from './components/OwnerBookings';
+import { RequireAuth, OwnerOnlyRoute } from './components/ProtectedRoute';
 
 import ScrollToTop from './components/ScrollToTop';
 import { ToastContainer } from 'react-toastify'; // ✅ Import this
@@ -59,9 +63,12 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/contact" element={<MyContact />} />
           <Route path="/vehicle/:id" element={<VehicleDetails />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/owner/register" element={<RegisterOwner />} />
-          <Route path="/vehicle/register" element={<RegisterVehicle />} />
+          <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
+          <Route path="/order-success" element={<RequireAuth><OrderSuccess /></RequireAuth>} />
+          <Route path="/my-bookings" element={<RequireAuth><BookingHistory /></RequireAuth>} />
+          <Route path="/owner-bookings" element={<OwnerOnlyRoute><OwnerBookings /></OwnerOnlyRoute>} />
+          <Route path="/owner/register" element={<RequireAuth><RegisterOwner /></RequireAuth>} />
+          <Route path="/vehicle/register" element={<OwnerOnlyRoute><RegisterVehicle /></OwnerOnlyRoute>} />
         </Routes>
       </div>
     </>
