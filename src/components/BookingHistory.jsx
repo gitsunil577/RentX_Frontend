@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaMapMarkerAlt, FaCar, FaRupeeSign, FaTrash, FaEye } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaCar, FaRupeeSign, FaTrash, FaEye, FaFileInvoice, FaDownload } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -57,6 +57,52 @@ function BookingHistory() {
     } catch (err) {
       console.error("Error cancelling booking:", err);
       toast.error(err.response?.data?.message || "Failed to cancel booking");
+    }
+  };
+
+  const handleDownloadInvoice = async (bookingId, invoiceNumber) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      toast.info("Downloading invoice...");
+
+      const response = await axios.get(
+        `${API_BASE_URL}/booking/invoice/${bookingId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob' // Important for PDF download
+        }
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Use invoice number for filename if available
+      const filename = invoiceNumber
+        ? `${invoiceNumber}.pdf`
+        : `Invoice_${bookingId.slice(-8)}.pdf`;
+
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Invoice downloaded successfully!");
+    } catch (err) {
+      console.error("Error downloading invoice:", err);
+
+      if (err.response?.status === 403) {
+        toast.error("You are not authorized to download this invoice");
+      } else if (err.response?.status === 400) {
+        toast.error("Invoice not available. Payment must be completed first.");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to download invoice");
+      }
     }
   };
 
@@ -235,6 +281,18 @@ function BookingHistory() {
                           {booking.ownerId.storeName}
                         </div>
                       )}
+
+                      {/* Invoice Number - Show if available */}
+                      {booking.invoiceNumber && (
+                        <div className="flex items-center gap-2 text-sm bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2">
+                          <FaFileInvoice className="text-blue-400" />
+                          <div>
+                            <span className="text-slate-400">Invoice: </span>
+                            <span className="text-blue-300 font-mono font-semibold">{booking.invoiceNumber}</span>
+                          </div>
+                          <span className="text-green-400 text-xs ml-2">✓ Verified by RentX</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Amount and Actions */}
@@ -250,16 +308,30 @@ function BookingHistory() {
                         </p>
                       </div>
 
-                      {/* Cancel Button */}
-                      {(booking.status === "Pending" || booking.status === "Confirmed") && (
-                        <button
-                          onClick={() => handleCancelBooking(booking._id)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all border border-red-500/30"
-                        >
-                          <FaTrash className="text-sm" />
-                          <span className="text-sm">Cancel</span>
-                        </button>
-                      )}
+                      {/* Action Buttons */}
+                      <div className="flex flex-col gap-2 w-full md:w-auto">
+                        {/* Download Invoice Button - Show for paid bookings */}
+                        {booking.paymentStatus === "Paid" && (
+                          <button
+                            onClick={() => handleDownloadInvoice(booking._id, booking.invoiceNumber)}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-all border border-blue-500/30"
+                          >
+                            <FaDownload className="text-sm" />
+                            <span className="text-sm font-medium">Download Invoice</span>
+                          </button>
+                        )}
+
+                        {/* Cancel Button */}
+                        {(booking.status === "Pending" || booking.status === "Confirmed") && (
+                          <button
+                            onClick={() => handleCancelBooking(booking._id)}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all border border-red-500/30"
+                          >
+                            <FaTrash className="text-sm" />
+                            <span className="text-sm">Cancel</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

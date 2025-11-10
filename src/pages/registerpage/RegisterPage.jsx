@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaUserPlus, FaStore, FaShoppingCart } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaUserPlus, FaStore, FaShoppingCart, FaPhone } from "react-icons/fa";
 
 function RegisterPage() {
   const [userType, setUserType] = useState("Buyer"); // "Buyer" or "Owner"
   const [fullName, setFullName] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +53,7 @@ function RegisterPage() {
         fullname: fullName,
         username: userName,
         email,
+        phoneNumber: phoneNumber || undefined,
         password,
         typeOfCustomer: userType,
       });
@@ -68,6 +70,7 @@ function RegisterPage() {
       setFullName("");
       setUserName("");
       setEmail("");
+      setPhoneNumber("");
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
@@ -283,6 +286,26 @@ function RegisterPage() {
                       required
                     />
                   </div>
+                </div>
+
+                {/* Phone Number Input */}
+                <div className="relative group/input">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-0 group-hover/input:opacity-30 transition duration-300"></div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <FaPhone className="h-5 w-5 text-slate-400 group-focus-within/input:text-blue-400 transition-colors duration-200" />
+                    </div>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="Phone Number (e.g., +919876543210) - Optional"
+                      className="w-full h-14 pl-12 pr-4 bg-slate-800/50 border-2 border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-slate-800/70 transition-all duration-200 hover:border-slate-500"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400 ml-12">
+                    📱 Required for SMS notifications about your bookings
+                  </p>
                 </div>
 
                 {/* Password Input */}

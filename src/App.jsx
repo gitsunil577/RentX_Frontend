@@ -34,7 +34,7 @@ function AppContent() {
   const location = useLocation();
   const hideNavbarPaths = ['/login', '/register'];
   const hideFooterPaths = ['/login', '/register', '/', '/home'];
-  const noPaddingPaths = ['/login', '/register', '/', '/home']; // No padding for login, register, and homepage
+  const noPaddingPaths = ['/login', '/register']; // No padding only for login and register (they have no navbar)
 
   return (
     <>
@@ -55,9 +55,9 @@ function AppContent() {
       />
 
       {/* 🔍 Debug Panel - Remove this after testing */}
-      
 
-      <div className={noPaddingPaths.includes(location.pathname) ? "min-h-screen" : "min-h-screen pt-16"} style={noPaddingPaths.includes(location.pathname) ? {} : { paddingBottom: '70px' }}>
+
+      <div className={noPaddingPaths.includes(location.pathname) ? "min-h-screen" : "min-h-screen"} style={noPaddingPaths.includes(location.pathname) ? {} : { paddingBottom: '70px' }}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
