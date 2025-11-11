@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCalendarAlt, FaMapMarkerAlt, FaCar, FaRupeeSign, FaUser, FaEnvelope, FaEdit, FaPlus, FaChartLine, FaClock, FaCheckCircle } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaCar, FaRupeeSign, FaUser, FaEnvelope, FaEdit, FaPlus, FaChartLine, FaClock, FaCheckCircle, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +13,9 @@ function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [deletingVehicle, setDeletingVehicle] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState(null);
   const [stats, setStats] = useState({
     totalVehicles: 0,
     totalBookings: 0,
@@ -68,8 +71,9 @@ function OwnerDashboard() {
     const activeBookings = bookingsData.filter(
       (b) => b.status === "Confirmed" || b.status === "Ongoing"
     ).length;
+    // Calculate revenue only from Completed bookings with Paid status
     const totalRevenue = bookingsData
-      .filter((b) => b.paymentStatus === "Paid")
+      .filter((b) => b.status === "Completed" && b.paymentStatus === "Paid")
       .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 
     setStats({
@@ -99,6 +103,40 @@ function OwnerDashboard() {
     } finally {
       setUpdatingStatus(null);
     }
+  };
+
+  const handleDeleteClick = (vehicle) => {
+    setVehicleToDelete(vehicle);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!vehicleToDelete) return;
+
+    try {
+      setDeletingVehicle(vehicleToDelete._id);
+      const token = localStorage.getItem("accessToken");
+
+      await axios.delete(
+        `${API_BASE_URL}/vehicle/delete-vehicle/${vehicleToDelete._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success(`Vehicle "${vehicleToDelete.name}" deleted successfully!`);
+      setShowDeleteConfirm(false);
+      setVehicleToDelete(null);
+      fetchOwnerData(); // Refresh data
+    } catch (err) {
+      console.error("Error deleting vehicle:", err);
+      toast.error(err.response?.data?.message || "Failed to delete vehicle");
+    } finally {
+      setDeletingVehicle(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setVehicleToDelete(null);
   };
 
   const getStatusColor = (status) => {
@@ -221,6 +259,7 @@ function OwnerDashboard() {
               <FaRupeeSign className="text-4xl text-purple-400 mx-auto mb-2" />
               <p className="text-3xl font-bold text-purple-400">₹{stats.totalRevenue.toFixed(0)}</p>
               <p className="text-sm text-slate-400">Total Revenue</p>
+              <p className="text-xs text-slate-500 mt-1">(Completed Bookings)</p>
             </div>
           </div>
         </div>
@@ -526,6 +565,14 @@ function OwnerDashboard() {
                             <FaEdit />
                             Edit
                           </button>
+                          <button
+                            onClick={() => handleDeleteClick(vehicle)}
+                            disabled={deletingVehicle === vehicle._id}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed text-white rounded-lg transition-all flex items-center gap-2 text-sm"
+                          >
+                            <FaTrash />
+                            {deletingVehicle === vehicle._id ? "..." : "Delete"}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -536,6 +583,61 @@ function OwnerDashboard() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="relative group max-w-md w-full">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl blur opacity-50"></div>
+            <div className="relative bg-slate-900 backdrop-blur-xl rounded-2xl border border-red-500/50 p-6 md:p-8">
+              {/* Warning Icon */}
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 border-2 border-red-500 mb-4">
+                  <FaTrash className="text-3xl text-red-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Delete Vehicle?</h2>
+                <p className="text-slate-300 mb-1">
+                  Are you sure you want to delete
+                </p>
+                <p className="text-xl font-semibold text-blue-400 mb-3">
+                  "{vehicleToDelete?.name}"?
+                </p>
+                <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  This action cannot be undone. The vehicle will be permanently removed from your listings.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  disabled={deletingVehicle}
+                  className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deletingVehicle}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 disabled:from-red-800 disabled:to-pink-800 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  {deletingVehicle ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <FaTrash />
+                      Delete Vehicle
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
