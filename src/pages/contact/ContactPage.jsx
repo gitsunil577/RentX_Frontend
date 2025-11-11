@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { FaEnvelope, FaUser, FaPaperPlane, FaPhone, FaMapMarkerAlt, FaClock, FaCheckCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function MyContact() {
   const [formData, setFormData] = useState({
@@ -25,16 +28,18 @@ export default function MyContact() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('https://formspree.io/f/xgvapobj', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/contact/submit`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      if (response.ok) {
-        toast.success('Message sent successfully! We\'ll get back to you soon.');
+      if (response.data) {
+        toast.success('Message sent successfully! We\'ll get back to you soon. Check your email for confirmation.');
         setFormData({
           name: '',
           email: '',
@@ -42,12 +47,10 @@ export default function MyContact() {
           subject: '',
           message: '',
         });
-      } else {
-        toast.error('Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('An error occurred. Please try again later.');
+      toast.error(error.response?.data?.message || 'An error occurred. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }

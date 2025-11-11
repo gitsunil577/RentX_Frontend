@@ -17,9 +17,10 @@ function Footer({ className }) {
                         <h4 className="text-lg font-semibold text-indigo-500 mb-5">Explore</h4>
                         <ul className="text-sm">
                             <li className="mb-3"><Link to="/" className="hover:text-indigo-400 transition-colors duration-200">Home</Link></li>
-                            <li className="mb-3"><Link to="/products" className="hover:text-indigo-400 transition-colors duration-200">Products</Link></li>
+                            <li className="mb-3"><Link to="/vehicles" className="hover:text-indigo-400 transition-colors duration-200">Vehicles</Link></li>
                             <li className="mb-3"><Link to="/about" className="hover:text-indigo-400 transition-colors duration-200">About Us</Link></li>
-                            <li><Link to="/contact" className="hover:text-indigo-400 transition-colors duration-200">Contact Us</Link></li>
+                            <li className="mb-3"><Link to="/contact" className="hover:text-indigo-400 transition-colors duration-200">Contact Us</Link></li>
+                            <li><Link to="/terms" className="hover:text-indigo-400 transition-colors duration-200">Terms & Conditions</Link></li>
                         </ul>
                     </div>
                     <div>

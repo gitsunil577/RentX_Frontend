@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FaStar, FaQuoteLeft, FaCar, FaMotorcycle, FaShieldAlt, FaHeadset } from 'react-icons/fa';
 
 function VehicleFooter() {
@@ -171,10 +172,10 @@ function VehicleFooter() {
             <div>
               <h4 className="text-white font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="/about" className="hover:text-blue-400 transition-colors">About Us</a></li>
-                <li><a href="/products" className="hover:text-blue-400 transition-colors">Browse Vehicles</a></li>
-                <li><a href="/contact" className="hover:text-blue-400 transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-blue-400 transition-colors">Terms & Conditions</a></li>
+                <li><Link to="/about" className="hover:text-blue-400 transition-colors">About Us</Link></li>
+                <li><Link to="/vehicles" className="hover:text-blue-400 transition-colors">Browse Vehicles</Link></li>
+                <li><Link to="/contact" className="hover:text-blue-400 transition-colors">Contact</Link></li>
+                <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Terms & Conditions</Link></li>
               </ul>
             </div>
             <div>

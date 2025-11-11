@@ -15,8 +15,10 @@ import AboutPage from './pages/aboutpage/AboutPage';
 import VehiclePage from './pages/vehiclepage/VehiclePages';
 import RegisterPage from './pages/registerpage/RegisterPage';
 import MyContact from './pages/contact/ContactPage';
+import TermsPage from './pages/terms/TermsPage';
 import VehicleDetails from './pages/vehiclepage/VehicleDetails';
 import RegisterVehicle from './components/RegisterVehicle';
+import EditVehicle from './components/EditVehicle';
 import RegisterOwner from './components/RegisterOwner';
 
 import CartPage from './components/CartPage';
@@ -27,6 +29,7 @@ import UserDebugPanel from './components/UserDebugPanel';
 import { RequireAuth, OwnerOnlyRoute } from './components/ProtectedRoute';
 
 import ScrollToTop from './components/ScrollToTop';
+import NavigationLoader from './components/NavigationLoader';
 import { ToastContainer } from 'react-toastify'; // ✅ Import this
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import styles
 
@@ -39,6 +42,7 @@ function AppContent() {
   return (
     <>
       <ScrollToTop />
+      <NavigationLoader />
 
       {/* Only show Navbar if NOT on login/register pages */}
       {!hideNavbarPaths.includes(location.pathname) && <Navbar />}
@@ -66,6 +70,7 @@ function AppContent() {
           <Route path="/vehicles" element={<VehiclePage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/contact" element={<MyContact />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/vehicle/:id" element={<VehicleDetails />} />
           <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
           <Route path="/order-success" element={<RequireAuth><OrderSuccess /></RequireAuth>} />
@@ -73,6 +78,7 @@ function AppContent() {
           <Route path="/owner-dashboard" element={<OwnerOnlyRoute><OwnerDashboard /></OwnerOnlyRoute>} />
           <Route path="/owner/register" element={<RequireAuth><RegisterOwner /></RequireAuth>} />
           <Route path="/vehicle/register" element={<OwnerOnlyRoute><RegisterVehicle /></OwnerOnlyRoute>} />
+          <Route path="/vehicle/edit/:id" element={<OwnerOnlyRoute><EditVehicle /></OwnerOnlyRoute>} />
         </Routes>
       </div>
     </>

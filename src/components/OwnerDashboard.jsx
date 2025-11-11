@@ -516,6 +516,11 @@ function OwnerDashboard() {
                             View Details
                           </button>
                           <button
+                            onClick={() => {
+                              // Store vehicle data for editing
+                              sessionStorage.setItem('editVehicleData', JSON.stringify(vehicle));
+                              navigate(`/vehicle/edit/${vehicle._id}`);
+                            }}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all flex items-center gap-2 text-sm"
                           >
                             <FaEdit />
