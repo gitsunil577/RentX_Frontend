@@ -210,12 +210,13 @@ export default function LoginPage() {
                     </span>
                   </label>
 
-                  <a
-                    href="#"
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
                     className="text-blue-400 hover:text-blue-300 transition-colors font-medium hover:underline"
                   >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
 
                 {/* Submit Button */}

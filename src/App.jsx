@@ -3,6 +3,7 @@
 import React from 'react';
 import './App.css';
 import LoginPage from './pages/loginpage/LoginPage';
+import ForgotPasswordPage from './pages/loginpage/ForgotPasswordPage';
 import Navbar from './components/Navbar';
 import {
     BrowserRouter,
@@ -30,14 +31,15 @@ import { RequireAuth, OwnerOnlyRoute } from './components/ProtectedRoute';
 
 import ScrollToTop from './components/ScrollToTop';
 import NavigationLoader from './components/NavigationLoader';
+import CookieConsent from './components/CookieConsent';
 import { ToastContainer } from 'react-toastify'; // ✅ Import this
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Import styles
 
 function AppContent() {
   const location = useLocation();
-  const hideNavbarPaths = ['/login', '/register'];
-  const hideFooterPaths = ['/login', '/register', '/', '/home'];
-  const noPaddingPaths = ['/login', '/register']; // No padding only for login and register (they have no navbar)
+  const hideNavbarPaths = ['/login', '/register', '/forgot-password'];
+  const hideFooterPaths = ['/login', '/register', '/forgot-password', '/', '/home'];
+  const noPaddingPaths = ['/login', '/register', '/forgot-password']; // No padding only for login and register (they have no navbar)
 
   return (
     <>
@@ -58,6 +60,9 @@ function AppContent() {
         draggable
       />
 
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
+
       {/* 🔍 Debug Panel - Remove this after testing */}
 
 
@@ -65,6 +70,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/vehicles" element={<VehiclePage />} />
