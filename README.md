@@ -53,13 +53,14 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repository-url>
-cd E-Rental\ System/E-Rental_System
+git clone https://github.com/gitsunil577/RentX_Frontend.git
+cd E-RentalSystem/E-Rental_System
 ```
 
 ### 2. Install Dependencies
 ```bash
-npm install
+npm install (or)
+npm i
 ```
 
 ### 3. Environment Setup
@@ -321,7 +322,7 @@ This project is private and proprietary.
 
 ## 👥 Authors
 
-- Your Name - Initial work
+- Sunil Dalai - Initial work
 
 ## 🙏 Acknowledgments
 
