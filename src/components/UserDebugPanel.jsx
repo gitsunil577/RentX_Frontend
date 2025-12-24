@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 // Debug panel to check user authentication state
 // Add this temporarily to help debug user type detection

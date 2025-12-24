@@ -1,6 +1,6 @@
 // src/components/RegisterOwner.jsx
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaStore, FaFileInvoice, FaMapMarkerAlt, FaUserTie, FaPhone } from "react-icons/fa";

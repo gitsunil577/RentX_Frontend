@@ -1,6 +1,6 @@
 // src/components/RegisterProduct.jsx
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaCar, FaFileAlt, FaDollarSign, FaBoxes, FaList, FaImage } from "react-icons/fa";
