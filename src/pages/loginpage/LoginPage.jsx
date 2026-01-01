@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaGoogle } from "react-icons/fa";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../../config/firebase";
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
@@ -50,6 +52,69 @@ export default function LoginPage() {
     } catch (err) {
       console.error("Login error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Something went wrong");
+      setSuccessMessage("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      // Sign in with Google popup
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      console.log("Google sign-in successful:", user);
+
+      // Get ID token from Firebase
+      const idToken = await user.getIdToken();
+
+      // Send the ID token to your backend for verification
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/user/google-login`,
+        {
+          idToken,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          uid: user.uid,
+        }
+      );
+
+      console.log("Backend verification successful:", response.data);
+
+      const { accessToken, refreshToken, user: userData } = response.data.message;
+
+      // Store login status, tokens, and user data
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("userData", JSON.stringify(userData));
+
+      setSuccessMessage("Google sign-in successful! Redirecting...");
+
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+
+      // Handle specific Firebase errors
+      if (err.code === "auth/popup-closed-by-user") {
+        setError("Sign-in cancelled. Please try again.");
+      } else if (err.code === "auth/popup-blocked") {
+        setError("Popup was blocked. Please allow popups for this site.");
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Google sign-in failed. Please try again.");
+      }
       setSuccessMessage("");
     } finally {
       setIsLoading(false);
@@ -246,6 +311,31 @@ export default function LoginPage() {
                   </span>
                 </button>
               </form>
+
+              {/* Divider */}
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-700"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="px-4 bg-slate-900 text-slate-400 text-sm">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              {/* Google Sign-In Button */}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                type="button"
+                className="group/google relative w-full h-14 overflow-hidden rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-2 border-slate-600 bg-slate-800/50 hover:border-slate-500 hover:bg-slate-800/70"
+              >
+                <span className="relative flex items-center justify-center gap-3 text-base">
+                  <FaGoogle className="w-5 h-5 text-red-400" />
+                  <span>Sign in with Google</span>
+                </span>
+              </button>
 
               {/* Divider */}
               <div className="relative py-4">
