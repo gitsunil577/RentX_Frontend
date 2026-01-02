@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { FaRobot, FaTimes, FaPaperPlane, FaUser } from 'react-icons/fa';
+import { FaRobot, FaTimes, FaPaperPlane, FaUser, FaEnvelope, FaPhone } from 'react-icons/fa';
+import axios from 'axios';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,11 +9,15 @@ const Chatbot = () => {
       type: 'bot',
       text: 'Hello! 👋 Welcome to RentX. How can I help you today?',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isAI: false,
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [supportEmail, setSupportEmail] = useState('rentx.sms.alerts@gmail.com');
+  const [showSupportContact, setShowSupportContact] = useState(false);
   const messagesEndRef = useRef(null);
+  const API_URL = 'http://localhost:8001/api/v1/chatbot';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,101 +27,61 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Predefined responses for common questions
-  const getBotResponse = (userMessage) => {
-    const lowerMessage = userMessage.toLowerCase();
+  // Fetch AI response from backend
+  const getBotResponse = async (userMessage) => {
+    try {
+      // Build conversation history from messages
+      const conversationHistory = messages
+        .filter(msg => msg.type === 'user' || msg.type === 'bot')
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          message: msg.text
+        }));
 
-    // Greeting responses
-    if (lowerMessage.match(/^(hi|hello|hey|good morning|good evening)/)) {
-      return "Hello! I'm here to help you with vehicle rentals. What would you like to know?";
+      const response = await axios.post(`${API_URL}/message`, {
+        message: userMessage,
+        conversationHistory
+      });
+
+      if (response.data.success) {
+        const { response: botResponse, isAI, needsEscalation, supportEmail: email } = response.data.data;
+
+        // Update support email if provided
+        if (email) {
+          setSupportEmail(email);
+        }
+
+        // Show support contact if escalation is needed
+        if (needsEscalation) {
+          setShowSupportContact(true);
+        }
+
+        return {
+          text: botResponse,
+          isAI,
+          needsEscalation
+        };
+      }
+    } catch (error) {
+      console.error('Chatbot API error:', error);
+      // Fallback response on error
+      return {
+        text: "I apologize, but I'm having trouble connecting right now. For immediate assistance, please contact our support team at rentx.sms.alerts@gmail.com or call +91 98765 43210.",
+        isAI: false,
+        needsEscalation: true
+      };
     }
-
-    // Vehicle-related queries
-    if (lowerMessage.includes('vehicle') || lowerMessage.includes('car') || lowerMessage.includes('bike')) {
-      return "We offer a wide range of vehicles including cars, bikes, and more! You can browse our collection by clicking 'Browse Vehicles' or visit the Vehicles page. Would you like to know about pricing or availability?";
-    }
-
-    // Pricing queries
-    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('rate')) {
-      return "Our vehicle prices vary based on the type and model. Prices are displayed per day. You can also add insurance (10% of daily rate) and driver service (₹500/day). Check out our Vehicles page for specific pricing!";
-    }
-
-    // Booking queries
-    if (lowerMessage.includes('book') || lowerMessage.includes('rent') || lowerMessage.includes('reserve')) {
-      return "To book a vehicle: 1) Browse our vehicles, 2) Click 'Rent Now' on your preferred vehicle, 3) Select your rental dates and optional services, 4) Add to cart and checkout. Need help with any specific step?";
-    }
-
-    // Payment queries
-    if (lowerMessage.includes('payment') || lowerMessage.includes('pay')) {
-      return "We accept secure online payments through Razorpay. You can pay using UPI, credit/debit cards, net banking, and digital wallets. Payment is processed securely after you add items to cart and checkout.";
-    }
-
-    // Insurance queries
-    if (lowerMessage.includes('insurance')) {
-      return "Yes! We offer insurance coverage at 10% of the daily rental rate. You can add insurance when booking a vehicle. It provides coverage for damages and ensures peace of mind during your rental period.";
-    }
-
-    // Driver queries
-    if (lowerMessage.includes('driver')) {
-      return "We provide professional driver services for ₹500 per day. You can select this option when booking your vehicle. Our drivers are experienced and licensed.";
-    }
-
-    // Location/pickup queries
-    if (lowerMessage.includes('location') || lowerMessage.includes('pickup') || lowerMessage.includes('deliver')) {
-      return "You can specify your preferred pickup location when making a booking. Enter your address in the 'Pickup Location' field during the rental booking process.";
-    }
-
-    // Contact queries
-    if (lowerMessage.includes('contact') || lowerMessage.includes('support') || lowerMessage.includes('help')) {
-      return "For assistance, you can visit our Contact page or reach out to our support team. We're here to help with any questions about your rental!";
-    }
-
-    // Account queries
-    if (lowerMessage.includes('account') || lowerMessage.includes('login') || lowerMessage.includes('register')) {
-      return "You can create an account or login from the top navigation bar. Having an account allows you to book vehicles, track your rentals, and manage your bookings easily.";
-    }
-
-    // Cart queries
-    if (lowerMessage.includes('cart')) {
-      return "Your cart stores the vehicles you want to rent. Click the cart icon in the navigation to view your selections and proceed to checkout. You can modify rental details or remove items from your cart anytime.";
-    }
-
-    // Availability queries
-    if (lowerMessage.includes('available') || lowerMessage.includes('availability')) {
-      return "Vehicle availability is shown on each vehicle card with 'Available' or 'Not Available' status. Available vehicles can be booked immediately. Check our Vehicles page for current availability!";
-    }
-
-    // Duration queries
-    if (lowerMessage.includes('how long') || lowerMessage.includes('duration') || lowerMessage.includes('days')) {
-      return "You can rent vehicles for any duration you need! Simply select your start and end dates when booking. The system automatically calculates the total days and pricing.";
-    }
-
-    // Cancellation queries
-    if (lowerMessage.includes('cancel') || lowerMessage.includes('refund')) {
-      return "For information about cancellations and refunds, please contact our support team through the Contact page. They'll assist you with your specific booking.";
-    }
-
-    // Thank you
-    if (lowerMessage.includes('thank')) {
-      return "You're welcome! Feel free to ask if you have any other questions. Happy renting! 🚗";
-    }
-
-    // Goodbye
-    if (lowerMessage.match(/^(bye|goodbye|see you|thanks bye)/)) {
-      return "Goodbye! Have a great day and enjoy your ride! 🚗✨";
-    }
-
-    // Default response
-    return "I'm here to help! You can ask me about:\n• Vehicle types and pricing\n• How to book/rent vehicles\n• Insurance and driver services\n• Payment methods\n• Account and contact info\n\nWhat would you like to know?";
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputMessage.trim() === '') return;
+
+    const userMessage = inputMessage.trim();
 
     // Add user message
     const userMsg = {
       type: 'user',
-      text: inputMessage,
+      text: userMessage,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages((prev) => [...prev, userMsg]);
@@ -125,17 +90,19 @@ const Chatbot = () => {
     // Show typing indicator
     setIsTyping(true);
 
-    // Simulate bot thinking time
-    setTimeout(() => {
-      const botResponse = getBotResponse(inputMessage);
-      const botMsg = {
-        type: 'bot',
-        text: botResponse,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, botMsg]);
-      setIsTyping(false);
-    }, 1000);
+    // Get AI response
+    const botResponseData = await getBotResponse(userMessage);
+
+    const botMsg = {
+      type: 'bot',
+      text: botResponseData.text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isAI: botResponseData.isAI,
+      needsEscalation: botResponseData.needsEscalation
+    };
+
+    setMessages((prev) => [...prev, botMsg]);
+    setIsTyping(false);
   };
 
   const handleKeyPress = (e) => {
@@ -234,6 +201,11 @@ const Chatbot = () => {
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                        {msg.type === 'bot' && msg.isAI && (
+                          <span className="inline-block mt-1 text-xs text-blue-400 opacity-60">
+                            ✨ AI-powered
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs text-slate-500 mt-1">{msg.time}</span>
                     </div>
@@ -257,6 +229,45 @@ const Chatbot = () => {
 
                 <div ref={messagesEndRef} />
               </div>
+
+              {/* Support Contact Card */}
+              {showSupportContact && (
+                <div className="px-4 py-3 bg-slate-800/50 border-t border-slate-700">
+                  <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-shrink-0 mt-1">
+                        <FaEnvelope className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-semibold text-blue-300 mb-1">Need More Help?</h4>
+                        <p className="text-xs text-slate-300 mb-2">Contact our support team for personalized assistance:</p>
+                        <div className="space-y-1">
+                          <a
+                            href={`mailto:${supportEmail}`}
+                            className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            <FaEnvelope className="w-3 h-3" />
+                            <span className="truncate">{supportEmail}</span>
+                          </a>
+                          <a
+                            href="tel:+919876543210"
+                            className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            <FaPhone className="w-3 h-3" />
+                            <span>+91 98765 43210</span>
+                          </a>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowSupportContact(false)}
+                        className="flex-shrink-0 text-slate-400 hover:text-slate-300 transition-colors"
+                      >
+                        <FaTimes className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Quick Actions */}
               {messages.length <= 2 && (
