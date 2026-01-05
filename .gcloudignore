@@ -1,0 +1,61 @@
+# This file specifies files that are intentionally untracked by gcloud
+# and should not be uploaded to Google Cloud Platform.
+
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Version control
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test and coverage
+coverage/
+.nyc_output/
+test/
+*.test.js
+*.spec.js
+
+# Documentation
+*.md
+docs/
+
+# Build artifacts (handled by Dockerfile multi-stage build)
+# dist/ - DO NOT ignore, needed for Docker build
+
+# Logs
+logs/
+*.log
+
+# Deployment files
+.vercel/
+vercel.json
+Dockerfile.dev
+docker-compose*.yml
+
+# Temporary files
+tmp/
+temp/
+
+# Source files that are not needed after build
+src/
+public/
+index.html
+vite.config.js
+tailwind.config.js
+eslint.config.js
+postcss.config.js

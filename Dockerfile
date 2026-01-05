@@ -24,17 +24,31 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Verify build output exists
+RUN ls -la /app/dist && echo "Build successful, dist directory contents listed above"
+
 # Production stage
 FROM nginx:alpine
+
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Verify files were copied
+RUN ls -la /usr/share/nginx/html
+
+# Create a startup script to handle PORT environment variable
+RUN echo $'#!/bin/sh\n\
+echo "Starting nginx on port ${PORT:-8080}"\n\
+nginx -g "daemon off;"' > /start.sh && chmod +x /start.sh
 
 # Expose port 8080 (Cloud Run default)
 EXPOSE 8080
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Use the startup script
+CMD ["/start.sh"]
